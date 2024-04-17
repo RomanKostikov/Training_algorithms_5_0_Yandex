@@ -1,0 +1,91 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <sstream>
+
+using namespace std;
+
+vector<string>& split(const string& s, char delim, vector<string>& elems)
+{
+    stringstream ss(s);
+    string item;
+    while (getline(ss, item, delim))
+    {
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+int main()
+{
+    set<string> dic;
+    vector<string> vec;
+
+    string input;
+    getline(cin, input);
+
+    vec = split(input, ' ', vec);
+    for (int i = 0; i < vec.size(); i++)
+    {
+        dic.insert(vec[i]);
+    }
+
+    vec.clear();
+
+    getline(cin, input);
+    vec = split(input, ' ', vec);
+
+
+
+    for (int i = 0; i < vec.size(); i++)
+    {
+        string tmp;
+        for (int j = 0; j < vec[i].size(); j++)
+        {
+            tmp += vec[i][j];
+
+            if (dic.contains(tmp))
+            {
+                cout << tmp << " ";
+                break;
+            }
+
+            if (j == vec[i].size() - 1)
+            {
+                cout << tmp << " ";
+            }
+        }
+    }
+
+/*
+
+a b
+abdafb basrt casds dsasa a
+a b casds dsasa a
+
+
+aa bc aaa
+a aa aaa bcd abcd
+a aa aa bc abcd
+
+a b c cc asdf
+asdfgh asdf abababa a aaa bdb bb b cdcdc cddccc ccc
+
+
+
+*/
+
+
+
+
+    //for (int const& item : res)
+    //{
+    //    cout << item << " ";
+    //}
+    //
+    //cout << endl;
+
+    return 0;
+}

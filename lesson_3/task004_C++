@@ -1,0 +1,133 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <set>
+
+using namespace std;
+
+
+int main()
+{
+    string input;
+    getline(cin, input, ' ');
+    int n = stoi(input);
+
+    getline(cin, input);
+    int k = stoi(input);
+
+    vector<int> vec;
+    vec.resize(n);
+
+    for (int i = 0; i < n; i++)
+    {
+        if (i != n - 1)
+        {
+            getline(cin, input, ' ');
+            vec[i] = stoi(input);
+        }
+        else
+        {
+            getline(cin, input);
+            vec[i] = stoi(input);
+        }
+    }
+
+
+
+
+    //int n = 100000;
+    //int k = 100000;
+    //vector<int> vec;
+    //vec.resize(n);
+    //for (int i = 0; i < n; i++)
+    //{
+    //    vec[i] = i;
+    //}
+
+    if (k > n) k = n;
+
+    multiset<int> tmp;
+    for (int i = 1; i < k; i++)
+    {
+        tmp.insert(vec[i]);
+    }
+
+    for (int i = 0; i < n - 1; i++)
+    {
+        //int left = (i - k < 0) ? 0 : i - k;
+        //int right = (i + k > n - 1) ? n : i + k;
+        //for (int j = left; j < right; j++)
+        //{
+        //    if (vec[j] == vec[i] && i != j)
+        //    {
+        //        cout << "YES" << endl;
+        //        return 0;
+        //    }
+        //}
+
+        //set<int> tmp;
+        //for (int j = left; j < i; j++)
+        //    tmp.insert(vec[j]);
+        //for (int j = i + 1; j < right; j++)
+        //    tmp.insert(vec[j]);
+        //
+        //if (tmp.contains(vec[i]))
+        //{
+        //    cout << "YES" << endl;
+        //    return 0;
+        //}
+
+        // добавить элемент vec[i + k], если не вышли за границу n
+        if (i + k < n)
+        {
+            tmp.insert(vec[i + k]);
+        }
+
+        if (tmp.contains(vec[i]))
+        {
+            cout << "YES" << endl;
+            return 0;
+        }
+
+        // удалить элемент vec[i]
+        if (i + 1 < n)
+        {
+            auto result = tmp.find(vec[i + 1]);
+            if (result != tmp.end())
+            {
+                tmp.erase(result);
+            }
+        }
+
+
+    }
+
+    cout << "NO" << endl;
+
+
+/*
+
+
+6 2
+1 2 3 1 2 3
+
+
+6 2
+1 2 3 3 3 3
+
+6 1
+1 2 3 4 5 4
+
+6 1
+1 2 3 4 -4 -6
+
+6 6
+-6 2 3 4 -4 -6
+
+10 20
+1 2 3 4 5 6 7 8 9 10
+
+*/
+
+    return 0;
+}

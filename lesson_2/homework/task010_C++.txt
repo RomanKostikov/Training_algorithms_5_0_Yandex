@@ -1,0 +1,1003 @@
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+bool test(vector<vector<char>> &map, int m, int n)
+{
+    bool test = false;
+
+    for (int i = 1; i < m - 1; i++)
+    {
+        for (int j = 1; j < n - 1; j++)
+        {
+            if (map[i][j] == '#')
+            {
+                test = true;
+            }
+        }
+    }
+
+    return test;
+}
+
+int main()
+{
+    string input;
+    getline(cin, input, ' ');
+    int m = stoi(input);
+
+    getline(cin, input);
+    int n = stoi(input);
+
+    vector<string> pic;
+
+    pic.resize(m);
+
+    for (int i = 0; i < m; i++)
+    {
+        getline(cin, input);
+        pic[i] = input;
+    }
+
+    vector<vector<char>> map;
+    map.resize(m);
+    for (int i = 0; i < m; i++)
+    {
+        map[i].resize(n, '.');
+        for (int j = 0; j < n; j++)
+        {
+            if (pic[i][j] == '#')
+            {
+                map[i][j] = '#';
+            }
+        }
+    }
+
+    vector<vector<char>> one;
+    vector<vector<char>> two;
+    vector<vector<char>> thr;
+    vector<vector<char>> fur;
+    one.resize(m);
+    two.resize(m);
+    thr.resize(m);
+    fur.resize(m);
+    for (int i = 0; i < m; i++)
+    {
+        one[i].resize(n, '.');
+        two[i].resize(n, '.');
+        thr[i].resize(n, '.');
+        fur[i].resize(n, '.');
+    }
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    vector<int> A = { 0, 0, 1, 1 };
+    vector<int> B = { 0, 0, 1, 1 };
+
+    bool searchA = true;
+
+    // нашли первый угол
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (searchA)
+                if (map[i][j] == '#')
+                {
+                    searchA = false;
+                    A[0] = i;
+                    A[1] = j;
+                }
+        }
+    }
+
+    // ищем длину a
+    for (int j = A[1] + 1; j < n; j++)
+    {
+        if (map[A[0]][j] != '#')
+        {
+            A[2] = j - A[1];
+            break;
+        }
+        else if (j == n - 1)
+        {
+            A[2] = j - A[1] + 1;
+        }
+    }
+
+    // ищем высоту а
+    for (int i = A[0] + 1; i < m; i++)
+    {
+        if (map[i][A[1]] != '#')
+        {
+            A[3] = i - A[0];
+            break;
+        }
+        else if (i == m - 1)
+        {
+            A[3] = i - A[0] + 1;
+        }
+    }
+
+
+    bool rect = true;
+    for (int i = A[0]; i < A[0] + A[3]; i++)
+    {
+        for (int j = A[1]; j < A[1] + A[2]; j++)
+        {
+            if (map[i][j] != '#')
+            {
+                rect = false;
+                break;
+            }
+        }
+    }
+
+    if (rect)
+    {
+        for (int i = A[0]; i < A[0] + A[3]; i++)
+        {
+            for (int j = A[1]; j < A[1] + A[2]; j++)
+            {
+                map[i][j] = 'a';
+            }
+        }
+    }
+
+
+
+    // BBBBBBBBBBBBBB
+    bool searchB = true;
+
+    // нашли второй угол
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (searchB)
+                if (map[m - i - 1][n - j - 1] == '#')
+                {
+                    searchB = false;
+                    B[0] = m - i - 1;
+                    B[1] = n - j - 1;
+                }
+        }
+    }
+
+
+    // ищем длину b
+    for (int j = B[1] - 1; j > -1; j--)
+    {
+        if (map[B[0]][j] != '#')
+        {
+            B[2] = B[1] - j;
+            break;
+        }
+        else if (j == 0)
+        {
+            B[2] = B[1] - j + 1;
+        }
+    }
+
+    // ищем высоту b
+    for (int i = B[0] - 1; i > -1; i--)
+    {
+        if (map[i][B[1]] != '#')
+        {
+            B[3] = B[0] - i;
+            break;
+        }
+        else if (i == 0)
+        {
+            B[3] = B[0] - i + 1;
+        }
+    }
+
+    bool rect1 = true;
+    for (int i = B[0]; i > B[0] - B[3]; i--)
+    {
+        for (int j = B[1]; j > B[1] - B[2]; j--)
+        {
+            if (map[i][j] != '#')
+            {
+                rect1 = false;
+                break;
+            }
+        }
+    }
+
+    if (rect1)
+    {
+        for (int i = B[0]; i > B[0] - B[3]; i--)
+        {
+            for (int j = B[1]; j > B[1] - B[2]; j--)
+            {
+                map[i][j] = 'b';
+            }
+        }
+    }
+
+    one = map;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // обнуляемся
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (map[i][j] == 'a' || map[i][j] == 'b') map[i][j] = '#';
+        }
+    }
+
+    A = { 0, 0, 1, 1 };
+    B = { 0, 0, 1, 1 };
+    searchB = true;
+    searchA = true;
+
+    // BBBBBBBBBBBBBB
+
+
+    // нашли второй угол
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (searchB)
+                if (map[m - i - 1][n - j - 1] == '#')
+                {
+                    searchB = false;
+                    B[0] = m - i - 1;
+                    B[1] = n - j - 1;
+                }
+        }
+    }
+
+
+    // ищем длину b
+    for (int j = B[1] - 1; j > -1; j--)
+    {
+        if (map[B[0]][j] != '#')
+        {
+            B[2] = B[1] - j;
+            break;
+        }
+        else if (j == 0)
+        {
+            B[2] = B[1] - j + 1;
+        }
+    }
+
+    // ищем высоту b
+    for (int i = B[0] - 1; i > -1; i--)
+    {
+        if (map[i][B[1]] != '#')
+        {
+            B[3] = B[0] - i;
+            break;
+        }
+        else if (i == 0)
+        {
+            B[3] = B[0] - i + 1;
+        }
+    }
+
+    rect1 = true;
+    for (int i = B[0]; i > B[0] - B[3]; i--)
+    {
+        for (int j = B[1]; j > B[1] - B[2]; j--)
+        {
+            if (map[i][j] != '#')
+            {
+                rect1 = false;
+                break;
+            }
+        }
+    }
+
+    if (rect1)
+    {
+        for (int i = B[0]; i > B[0] - B[3]; i--)
+        {
+            for (int j = B[1]; j > B[1] - B[2]; j--)
+            {
+                map[i][j] = 'b';
+            }
+        }
+    }
+
+
+
+
+
+    // AAAAAAAA
+    // нашли первый угол
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (searchA)
+                if (map[i][j] == '#')
+                {
+                    searchA = false;
+                    A[0] = i;
+                    A[1] = j;
+                }
+        }
+    }
+
+    // ищем длину a
+    for (int j = A[1] + 1; j < n; j++)
+    {
+        if (map[A[0]][j] != '#')
+        {
+            A[2] = j - A[1];
+            break;
+        }
+        else if (j == n - 1)
+        {
+            A[2] = j - A[1] + 1;
+        }
+    }
+
+    // ищем высоту а
+    for (int i = A[0] + 1; i < m; i++)
+    {
+        if (map[i][A[1]] != '#')
+        {
+            A[3] = i - A[0];
+            break;
+        }
+        else if (i == m - 1)
+        {
+            A[3] = i - A[0] + 1;
+        }
+    }
+
+
+    rect = true;
+    for (int i = A[0]; i < A[0] + A[3]; i++)
+    {
+        for (int j = A[1]; j < A[1] + A[2]; j++)
+        {
+            if (map[i][j] != '#')
+            {
+                rect = false;
+                break;
+            }
+        }
+    }
+
+    if (rect)
+    {
+        for (int i = A[0]; i < A[0] + A[3]; i++)
+        {
+            for (int j = A[1]; j < A[1] + A[2]; j++)
+            {
+                map[i][j] = 'a';
+            }
+        }
+    }
+
+    two = map;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // обнуляемся
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (map[i][j] == 'a' || map[i][j] == 'b') map[i][j] = '#';
+        }
+    }
+
+    A = { 0, 0, 1, 1 };
+    B = { 0, 0, 1, 1 };
+    searchB = true;
+    searchA = true;
+
+    // нашли первый угол
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (searchA)
+                if (map[i][n - j - 1] == '#')
+                {
+                    searchA = false;
+                    A[0] = i;
+                    A[1] = n - j - 1;
+                }
+        }
+    }
+
+    // ищем длину a
+    for (int j = A[1] - 1; j > -1; j--)
+    {
+        if (map[A[0]][j] != '#')
+        {
+            A[2] = A[1] - j;
+            break;
+        }
+        else if (j == 0)
+        {
+            A[2] = A[1] - j + 1;
+        }
+    }
+
+    // ищем высоту а
+    for (int i = A[0] + 1; i < m; i++)
+    {
+        if (map[i][A[1]] != '#')
+        {
+            A[3] = i - A[0];
+            break;
+        }
+        else if (i == m - 1)
+        {
+            A[3] = i - A[0] + 1;
+        }
+    }
+
+
+    rect = true;
+    for (int i = A[0]; i < A[0] + A[3]; i++)
+    {
+        for (int j = A[1]; j > A[1] - A[2]; j--)
+        {
+            if (map[i][j] != '#')
+            {
+                rect = false;
+                break;
+            }
+        }
+    }
+
+    if (rect)
+    {
+        for (int i = A[0]; i < A[0] + A[3]; i++)
+        {
+            for (int j = A[1]; j > A[1] - A[2]; j--)
+            {
+                map[i][j] = 'a';
+            }
+        }
+    }
+
+
+
+    // BBBBBBBBBBBBBB
+
+    // нашли второй угол
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (searchB)
+                if (map[m - i - 1][j] == '#')
+                {
+                    searchB = false;
+                    B[0] = m - i - 1;
+                    B[1] = j;
+                }
+        }
+    }
+
+
+    // ищем длину b
+    for (int j = B[1] + 1; j < n; j++)
+    {
+        if (map[B[0]][j] != '#')
+        {
+            B[2] = j - B[1];
+            break;
+        }
+        else if (j == n - 1)
+        {
+            B[2] = j - B[1] + 1;
+        }
+    }
+
+    // ищем высоту b
+    for (int i = B[0] - 1; i > -1; i--)
+    {
+        if (map[i][B[1]] != '#')
+        {
+            B[3] = B[0] - i;
+            break;
+        }
+        else if (i == 0)
+        {
+            B[3] = B[0] - i + 1;
+        }
+    }
+
+    rect1 = true;
+    for (int i = B[0]; i > B[0] - B[3]; i--)
+    {
+        for (int j = B[1]; j < B[1] + B[2]; j++)
+        {
+            if (map[i][j] != '#')
+            {
+                rect1 = false;
+                break;
+            }
+        }
+    }
+
+    if (rect1)
+    {
+        for (int i = B[0]; i > B[0] - B[3]; i--)
+        {
+            for (int j = B[1]; j < B[1] + B[2]; j++)
+            {
+                map[i][j] = 'b';
+            }
+        }
+    }
+
+    thr = map;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // обнуляемся
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (map[i][j] == 'a' || map[i][j] == 'b') map[i][j] = '#';
+        }
+    }
+
+    A = { 0, 0, 1, 1 };
+    B = { 0, 0, 1, 1 };
+    searchB = true;
+    searchA = true;
+
+    // BBBBBBBBBBBBBB
+
+    // нашли второй угол
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (searchB)
+                if (map[m - i - 1][j] == '#')
+                {
+                    searchB = false;
+                    B[0] = m - i - 1;
+                    B[1] = j;
+                }
+        }
+    }
+
+
+    // ищем длину b
+    for (int j = B[1] + 1; j < n; j++)
+    {
+        if (map[B[0]][j] != '#')
+        {
+            B[2] = j - B[1];
+            break;
+        }
+        else if (j == n - 1)
+        {
+            B[2] = j - B[1] + 1;
+        }
+    }
+
+    // ищем высоту b
+    for (int i = B[0] - 1; i > -1; i--)
+    {
+        if (map[i][B[1]] != '#')
+        {
+            B[3] = B[0] - i;
+            break;
+        }
+        else if (i == 0)
+        {
+            B[3] = B[0] - i + 1;
+        }
+    }
+
+    rect1 = true;
+    for (int i = B[0]; i > B[0] - B[3]; i--)
+    {
+        for (int j = B[1]; j < B[1] + B[2]; j++)
+        {
+            if (map[i][j] != '#')
+            {
+                rect1 = false;
+                break;
+            }
+        }
+    }
+
+    if (rect1)
+    {
+        for (int i = B[0]; i > B[0] - B[3]; i--)
+        {
+            for (int j = B[1]; j < B[1] + B[2]; j++)
+            {
+                map[i][j] = 'b';
+            }
+        }
+    }
+
+
+    // нашли первый угол
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (searchA)
+                if (map[i][n - j - 1] == '#')
+                {
+                    searchA = false;
+                    A[0] = i;
+                    A[1] = n - j - 1;
+                }
+        }
+    }
+
+    // ищем длину a
+    for (int j = A[1] - 1; j > -1; j--)
+    {
+        if (map[A[0]][j] != '#')
+        {
+            A[2] = A[1] - j;
+            break;
+        }
+        else if (j == 0)
+        {
+            A[2] = A[1] - j + 1;
+        }
+    }
+
+    // ищем высоту а
+    for (int i = A[0] + 1; i < m; i++)
+    {
+        if (map[i][A[1]] != '#')
+        {
+            A[3] = i - A[0];
+            break;
+        }
+        else if (i == m - 1)
+        {
+            A[3] = i - A[0] + 1;
+        }
+    }
+
+
+    rect = true;
+    for (int i = A[0]; i < A[0] + A[3]; i++)
+    {
+        for (int j = A[1]; j > A[1] - A[2]; j--)
+        {
+            if (map[i][j] != '#')
+            {
+                rect = false;
+                break;
+            }
+        }
+    }
+
+    if (rect)
+    {
+        for (int i = A[0]; i < A[0] + A[3]; i++)
+        {
+            for (int j = A[1]; j > A[1] - A[2]; j--)
+            {
+                map[i][j] = 'a';
+            }
+        }
+    }
+
+
+    fur = map;
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    // обнуляемся
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (map[i][j] == 'a' || map[i][j] == 'b') map[i][j] = '#';
+        }
+    }
+
+    A = { 0, 0, 1, 1 };
+    B = { 0, 0, 1, 1 };
+    searchB = true;
+    searchA = true;
+
+    // AAAAAAAA
+
+    // нашли первый угол
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (searchA)
+                if (map[i][j] == '#')
+                {
+                    searchA = false;
+                    A[0] = i;
+                    A[1] = j;
+                }
+        }
+    }
+
+    // ищем длину a
+    for (int j = A[1] + 1; j < n; j++)
+    {
+        if (map[A[0]][j] != '#')
+        {
+            A[2] = j - A[1];
+            break;
+        }
+        else if (j == n - 1)
+        {
+            A[2] = j - A[1] + 1;
+        }
+    }
+
+    // ищем высоту а
+    for (int i = A[0] + 1; i < m; i++)
+    {
+        if (map[i][A[1]] != '#')
+        {
+            A[3] = i - A[0];
+            break;
+        }
+        else if (i == m - 1)
+        {
+            A[3] = i - A[0] + 1;
+        }
+    }
+
+    rect = true;
+    for (int i = A[0]; i < A[0] + A[3]; i++)
+    {
+        for (int j = A[1]; j < A[1] + A[2]; j++)
+        {
+            if (map[i][j] != '#')
+            {
+                rect = false;
+                break;
+            }
+        }
+    }
+
+    if (rect)
+    {
+        for (int i = A[0]; i < A[0] + A[3]; i++)
+        {
+            for (int j = A[1]; j < A[1] + A[2]; j++)
+            {
+                map[i][j] = 'a';
+            }
+        }
+    }
+
+    if (A[2] > 1)
+    {
+        for (int i = A[0]; i < A[0] + A[3]; i++)
+        {
+            map[i][A[1]] = 'b';
+        }
+    }
+    else if (A[3] > 1)
+    {
+
+        for (int j = A[1]; j < A[1] + A[2]; j++)
+        {
+            map[A[0]][j] = 'b';
+        }
+    }
+
+
+    bool testA = false;
+    bool testB = false;
+    bool testC = false;
+
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (one[i][j] == 'a')
+                testA = true;
+
+            if (one[i][j] == 'b')
+                testB = true;
+
+            if (one[i][j] == '#')
+            {
+                testC = true;
+                break;
+            }
+        }
+    }
+
+    if (!testC && testA && testB)
+    {
+        cout << "YES" << endl;
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                cout << one[i][j];
+            }
+            cout << endl;
+        }
+
+        return 0;
+    }
+
+    testA = false;
+    testB = false;
+    testC = false;
+
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (two[i][j] == 'a')
+                testA = true;
+
+            if (two[i][j] == 'b')
+                testB = true;
+
+            if (two[i][j] == '#')
+            {
+                testC = true;
+                break;
+            }
+        }
+    }
+
+    if (!testC && testA && testB)
+    {
+        cout << "YES" << endl;
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                cout << two[i][j];
+            }
+            cout << endl;
+        }
+
+        return 0;
+    }
+
+    testA = false;
+    testB = false;
+    testC = false;
+
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (thr[i][j] == 'a')
+                testA = true;
+
+            if (thr[i][j] == 'b')
+                testB = true;
+
+            if (thr[i][j] == '#')
+            {
+                testC = true;
+                break;
+            }
+        }
+    }
+
+    if (!testC && testA && testB)
+    {
+        cout << "YES" << endl;
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                cout << thr[i][j];
+            }
+            cout << endl;
+        }
+
+        return 0;
+    }
+
+
+    testA = false;
+    testB = false;
+    testC = false;
+
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (fur[i][j] == 'a')
+                testA = true;
+
+            if (fur[i][j] == 'b')
+                testB = true;
+
+            if (fur[i][j] == '#')
+            {
+                testC = true;
+                break;
+            }
+        }
+    }
+
+    if (!testC && testA && testB)
+    {
+        cout << "YES" << endl;
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                cout << fur[i][j];
+            }
+            cout << endl;
+        }
+
+        return 0;
+    }
+
+
+    testA = false;
+    testB = false;
+    testC = false;
+
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (map[i][j] == 'a')
+                testA = true;
+
+            if (map[i][j] == 'b')
+                testB = true;
+
+            if (map[i][j] == '#')
+            {
+                testC = true;
+                break;
+            }
+        }
+    }
+
+    if (!testC && testA && testB)
+    {
+        cout << "YES" << endl;
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                cout << map[i][j];
+            }
+            cout << endl;
+        }
+
+        return 0;
+    }
+    else
+    {
+        cout << "NO" << endl;
+    }
+
+    return 0;
+}

@@ -1,0 +1,227 @@
+﻿#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <fstream>
+
+using namespace std;
+
+#define LL long long
+
+struct Party
+{
+    int v = 0;
+    int p = 0;
+    int nomer = 0;
+};
+
+bool Cmp(Party i1, Party i2)
+{
+    return (i1.v < i2.v);
+}
+
+bool Cmp2(Party i1, Party i2)
+{
+    return (i1.nomer < i2.nomer);
+}
+
+int search(int v, int N, vector<Party> &vec)
+{
+    int l = -1;
+    int r = N;
+
+    while (r - l > 1)
+    {
+        int mid = (l + r) / 2;
+
+        if (vec[mid].v >= v)
+            r = mid;
+        else
+            l = mid;
+    }
+
+    return r;
+}
+
+//#define INPUT_FILE in  // потому что заебало
+
+int main()
+{
+#ifdef INPUT_FILE
+    ifstream in("input47.txt");
+#endif
+
+    string input;
+
+#ifdef INPUT_FILE
+    getline(in, input);
+#else
+    getline(cin, input);
+#endif
+
+    int N = stoi(input);
+
+    vector<Party> vec;
+    vec.resize(N);
+
+    for (int i = 0; i < N; i++)
+    {
+        vec[i].nomer = i;
+
+#ifdef INPUT_FILE
+        getline(in, input, ' ');
+#else
+        getline(cin, input, ' ');
+#endif
+
+        vec[i].v = stoi(input);
+
+#ifdef INPUT_FILE
+        getline(in, input);
+#else
+        getline(cin, input);
+#endif
+        vec[i].p = stoi(input);
+    }
+
+
+    sort(vec.begin(), vec.end(), Cmp);
+
+    // найдем максимальную взятку и минимальную
+    int max_p = 0;
+    for (auto item : vec)
+    {
+        if (max_p < item.p) max_p = item.p;
+    }
+
+    // суффиксная сумма
+    vector<LL> suff;
+    suff.resize(N + 1);
+    suff[N] = 0;
+
+    for (int i = N - 1; i >= 0; i--)
+        suff[i] = suff[i + 1] + vec[i].v;
+
+    //for (int i = 0; i < N + 1; i++)
+    //    cout << suff[i] << " ";
+    //cout << endl;
+
+    LL min_p = suff[0] + max_p + 1;
+    int best_party = -1;
+    int best_l = -1;
+
+    //cout << min_p << " " << max_p << endl;
+
+    for (int i = 0; i < N; i++)
+    {
+        if (vec[i].p < 0 || vec[i].p >= min_p) continue;
+
+        LL l = vec[i].v;
+        LL r = suff[0] + max_p + 1;
+
+        //cout << l << " " << r << endl;
+
+        LL res = -1;
+
+        while (l <= r)
+        {
+            LL mid = (l + r) / 2;
+            LL index = search(mid, N, vec);
+
+            if (index < N && mid == vec[i].v) index++;
+
+            LL diff_v_best_party = mid - vec[i].v;
+            LL diff_v_prefix = suff[index] - (N - index) * (mid - 1);
+
+            if (index == N || diff_v_best_party >= diff_v_prefix)
+            {
+                r = mid - 1;
+                res = mid;
+            }
+            else
+            {
+                l = mid + 1;
+            }
+        }
+
+        LL p = res - vec[i].v + vec[i].p;
+        //cout << res << endl;
+        if (p < min_p)
+        {
+            best_party = i;
+            min_p = p;
+        }
+        //cout << best_party << endl;
+    }
+
+    LL vote = min_p - vec[best_party].p;
+    //cout << min_p << endl;
+    LL index = search(vec[best_party].v + vote, N, vec);
+    vec[best_party].v += vote;
+
+    for (int i = index; i < N; i++)
+    {
+        if (best_party == i) continue;
+        LL vv = vec[i].v - vec[best_party].v + 1;
+        vec[i].v = vec[best_party].v - 1;
+        vote -= vv;
+    }
+
+    int ind = N;
+
+    while (vote > 0)
+    {
+        ind--;
+        if (ind == best_party) continue;
+
+        if (vec[ind].v > vote)
+        {
+            vec[ind].v -= vote;
+            vote = 0;
+        }
+        else
+        {
+            vote -= vec[ind].v;
+            vec[ind].v = 0;
+         }
+    }
+
+    cout << min_p << endl;
+    cout << vec[best_party].nomer + 1 << endl;
+
+    sort(vec.begin(), vec.end(), Cmp2);
+
+    for (auto item : vec)
+        cout << item.v << " ";
+    cout << endl;
+
+/*
+
+3
+7 -1
+2 8
+1 2
+
+6
+3
+3 2 5
+---------------------
+
+2
+239 239
+239 -1
+
+240
+1
+240 239
+---------------------
+
+
+
+
+
+*/
+
+    return 0;
+}

@@ -1,0 +1,532 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <fstream>
+
+using namespace std;
+
+struct Point
+{
+    int l = 0;
+    int r = 0;
+    int u = 0;
+    int d = 0;
+};
+
+bool test_kvadrat(int row, int col, int m, int n, const vector<vector<char>>& map, int k)
+{
+    for (int i = 0; i < k; i++)
+    {
+        for (int j = 0; j < k; j++)
+        {
+            if (map[row + i][col + j] == '.')
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool test_inner(int row, int col, int m, int n, const vector<vector<char>>& map, int k)
+{
+    // тестируем 5 квадратов
+    // центральный
+    if (!test_kvadrat(row, col, m, n, map, k)) return false;
+
+    // верхний
+    if (!test_kvadrat(row - k, col, m, n, map, k)) return false;
+
+    // нижний
+    if (!test_kvadrat(row + k, col, m, n, map, k)) return false;
+
+    // слева
+    if (!test_kvadrat(row, col - k, m, n, map, k)) return false;
+
+    // справа
+    if (!test_kvadrat(row, col + k, m, n, map, k)) return false;
+
+    //cout << row << col << endl;
+
+    return true;
+}
+
+void move_right(int row, int col, const vector<vector<char>>& map, int k, int &sum)
+{
+    for (int i = 0; i < 3 * k; i++)
+    {
+        if (map[row + i][col] == '#') sum--;
+    }
+
+    for (int i = 0; i < 3 * k; i++)
+    {
+        if (map[row + i][col + 3 * k] == '#') sum++;
+    }
+}
+
+void move_left(int row, int col, vector<vector<char>>& map, int k, int& sum)
+{
+    for (int i = 0; i < 3 * k; i++)
+    {
+        if (map[row + i][col + 3 * k] == '#') sum--;
+    }
+
+    for (int i = 0; i < 3 * k; i++)
+    {
+        if (map[row + i][col] == '#') sum++;
+    }
+}
+
+void move_down(int row, int col, vector<vector<char>>& map, int k, int& sum)
+{
+    for (int i = 0; i < 3 * k; i++)
+    {
+        if (map[row][col + i] == '#') sum--;
+    }
+
+    for (int i = 0; i < 3 * k; i++)
+    {
+        if (map[row + 3 * k][col + i] == '#') sum++;
+    }
+}
+
+bool window(int m, int n, vector<vector<char>>& map, int k)
+{
+    if (3 * k > n || 3 * k > m) return false;
+
+    int sum = 0;
+    int squ = 5 * k * k;
+
+    // создали окно
+    for (int i = 0; i < 3 * k; i++)
+    {
+        for (int j = 0; j < 3 * k; j++)
+        {
+            if (map[i][j] == '#') sum++;
+        }
+    }
+
+    if (sum >= squ) // проверка на крест, если по площади подходит
+    {
+        if (test_inner(k, k, m, n, map, k)) return true;
+    }
+
+    for (int j = 0; j < n - 3 * k; j++)
+    {
+        // двигаем квадрат вправо, если i четная
+        move_right(0, j, map, k, sum);
+
+        if (sum >= squ) // проверка на крест, если по площади подходит
+        {
+            if (test_inner(k, j + k + 1, m, n, map, k)) return true;
+        }
+    }
+
+    // начали двигать окно
+    for (int i = 0; i < m - 3 * k; i++)
+    {
+        // сдвинули квадрат вниз
+        move_down(i, i % 2 == 0 ? n - 3 * k : 0, map, k, sum);
+
+        if (sum >= squ) // проверка на крест, если по площади подходит
+        {
+            if (test_inner(i + k + 1, i % 2 == 0 ? n - 3 * k + k : k, m, n, map, k)) return true;
+        }
+
+        for (int j = 0; j < n - 3 * k; j++)
+        {
+            // двигаем квадрат вправо, если i четная
+            if (i % 2 == 1)
+            {
+                move_right(i, j, map, k, sum);
+
+                if (sum >= squ) // проверка на крест, если по площади подходит
+                {
+                    if (test_inner(i + k + 1, j + k + 1, m, n, map, k)) return true;
+                }
+            }
+            else
+            {
+                move_left(i + 1, n - 3 * k - j - 1, map, k, sum);
+
+                if (sum >= squ) // проверка на крест, если по площади подходит
+                {
+                    if (test_inner(i + k + 1, n - 3 * k - j + k - 1, m, n, map, k)) return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+bool test(int m, int n, vector<vector<char>> &map, int k)
+{
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (map[i][j] == '#')
+            {
+                if (test_inner(i, j, m, n, map, k)) return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool window_new(int m, int n, const vector<vector<char>>& map, int k, int pos)
+{
+    if (3 * k > n || 3 * k > m) return false;
+
+    int sum = 0;
+    int squ = 5 * k * k;
+
+    // создали окно
+    for (int i = pos - k; i < pos + 2 * k; i++)
+    {
+        for (int j = 0; j < 3 * k; j++)
+        {
+            if (map[i][j] == '#') sum++;
+        }
+    }
+
+    if (sum >= squ) // проверка на крест, если по площади подходит
+    {
+        if (test_inner(pos, k, m, n, map, k)) return true;
+    }
+
+    for (int j = 0; j < n - 3 * k; j++)
+    {
+        // двигаем квадрат вправо
+        move_right(pos - k, j, map, k, sum);
+
+        if (sum >= squ) // проверка на крест, если по площади подходит
+        {
+            if (test_inner(pos, j + k + 1, m, n, map, k)) return true;
+        }
+    }
+
+    return false;
+}
+
+bool test_inner_new(const vector<int>& count_place, int k, int pos)
+{
+    for (int i = pos; i < pos + k; i++)
+    {
+        if (count_place[i] < 3 * k)
+            return false;
+    }
+
+    return true;
+}
+
+bool test_new(int m, int n, const vector<vector<char>>& map, int k, const vector<int>& count_place_row, const vector<int>& count_place_col)
+{
+    vector<int> tmp_row; // тут будем хранить строки, в которых есть нужная длина 3k и снизу еще k строк с нужной длиной
+    vector<int> tmp_col; // тут будем хранить столбцы, в которых есть нужная длина 3k и снизу еще k строк с нужной длиной
+
+    // проходим циклом по всем строкам и ищем те, у которых есть 3*k клеток закрашенных
+    for (int i = k; i <= count_place_row.size() - 2 * k; i++) // есть смысл начинать с k строки, так как сверху есть квадратик и заканчивать так же
+    {
+        if (count_place_row[i] >= 3 * k) // эта проверка не обязательна, но пусть будет (меньше вызовов функции будет)
+        {
+            if (test_inner_new(count_place_row, k, i)) // проверка k соседей снизу на наличие подходящего количества закрашенных клеток
+            {
+                // нашли строку, у которой снизу есть
+                tmp_row.push_back(i); // дорого? можно ресайзнуть заранее, но будет проверка на 0
+            }
+        }
+    }
+
+    // проходим циклом по всем столбцам и ищем те, у которых есть 3*k клеток закрашенных
+    for (int i = k; i <= count_place_col.size() - 2 * k; i++) // есть смысл начинать с k строки, так как сверху есть квадратик и заканчивать так же
+    {
+        if (count_place_col[i] >= 3 * k) // эта проверка не обязательна, но пусть будет (меньше вызовов функции будет)
+        {
+            if (test_inner_new(count_place_col, k, i)) // проверка k соседей снизу на наличие подходящего количества закрашенных клеток
+            {
+                // нашли столбец, у которой снизу есть
+                tmp_col.push_back(i); // дорого? можно ресайзнуть заранее, но будет проверка на 0
+            }
+        }
+    }
+
+    // проверка всех пар на кресты
+    for (int i = 0; i < tmp_row.size(); i++)
+    {
+        for (int j = 0; j < tmp_col.size(); j++)
+        {
+            if (test_inner(tmp_row[i], tmp_col[j], m, n, map, k)) return true;
+        }
+    }
+
+    return false;
+}
+
+int bin_search(const int m, const int n, const vector<vector<char>> &map, const vector<int> & count_place_row, const vector<int>& count_place_col)
+{
+    int mid = 0;
+    int l = 1;
+    int r = (min(m, n) + 1) / 3;
+
+
+    while (l < r)
+    {
+        mid = (l + r + 1) / 2; // считываем срединный индекс отрезка [l,r]
+
+        //if (window(m, n, map, mid))
+        if (test_new(m, n, map, mid, count_place_row, count_place_col))
+            l = mid; // проверяем, какую часть нужно отбросить с поиска
+        else
+            r = mid - 1;
+    }
+
+    return l;
+}
+
+bool test__varian5(int k, const int m, const int n, const vector<vector<char>>& map, const vector<vector<int>>& rows, const vector<vector<int>>& cols)
+{
+    // проходим циклом по всем строкам и ищем те, у которых вес не меньше 3*k
+    for (int i = k; i <= m - 2 * k; i++) // есть смысл начинать с k строки, так как сверху есть квадратик и заканчивать так же
+    {
+        for (int j = k; j <= n - 2 * k; j++) // есть смысл начинать с k строки, так как сверху есть квадратик и заканчивать так же
+        {
+            if (rows[i][j] >= 3 * k && cols[i][j] >= 3 * k)
+            {
+                if (test_inner(i, j, m, n, map, k)) return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+int bin_search_variant5(const int m, const int n, const vector<vector<char>>& map, const vector<vector<int>>& rows, const vector<vector<int>>& cols)
+{
+    int mid = 0;
+    int l = 1;
+    int r = (min(m, n) + 1) / 3;
+
+
+    while (l < r)
+    {
+        mid = (l + r + 1) / 2; // считываем срединный индекс отрезка [l,r]
+
+        if (test__varian5(mid, m, n, map, rows, cols))
+            l = mid; // проверяем, какую часть нужно отбросить с поиска
+        else
+            r = mid - 1;
+    }
+
+    return l;
+}
+
+bool test_inner_variant6(const int row, const int col, const int k, const vector<vector<Point>>& points)
+{
+    // проверка строки
+    for (int i = 1; i < k; i++)
+    {
+        if (points[row][col + i].u < k || points[row][col + i].d < 2 * k - 1 || points[row][col + i].l < k + i || points[row][col + i].r < 2 * k - i - 1) return false;
+    }
+
+    // проверка столбца
+    for (int i = 1; i < k; i++)
+    {
+        if (points[row + i][col].u < k + i || points[row + i][col].d < 2 * k - i - 1 || points[row + i][col].l < k || points[row + i][col].r < 2 * k - 1) return false;
+    }
+
+    return true;
+}
+
+bool test_variant6(int k, const int m, const int n, const vector<vector<char>>& map, const vector<vector<Point>>& points)
+{
+    // проходим циклом по всем строкам и ищем те, у которых вес не меньше 3*k
+    for (int i = k; i <= m - 2 * k; i++) // есть смысл начинать с k строки, так как сверху есть квадратик и заканчивать так же
+    {
+        for (int j = k; j <= n - 2 * k; j++) // есть смысл начинать с k строки, так как сверху есть квадратик и заканчивать так же
+        {
+            if (points[i][j].u >= k && points[i][j].d >= 2 * k - 1 && points[i][j].l >= k && points[i][j].r >= 2 * k - 1)
+            {
+                if (test_inner_variant6(i, j, k, points)) return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+int bin_search_variant6(const int m, const int n, const vector<vector<char>>& map, const vector<vector<Point>> &points)
+{
+    int mid = 0;
+    int l = 1;
+    int r = (min(m, n) + 1) / 3;
+
+
+    while (l < r)
+    {
+        mid = (l + r + 1) / 2; // считываем срединный индекс отрезка [l,r]
+
+        if (test_variant6(mid, m, n, map, points))
+            l = mid; // проверяем, какую часть нужно отбросить с поиска
+        else
+            r = mid - 1;
+    }
+
+    return l;
+}
+
+int main()
+{
+
+#ifdef INPUT_FILE
+    ifstream in("input.txt");
+#endif
+
+    string input;
+
+#ifdef INPUT_FILE
+    getline(in, input, ' ');
+#else
+    getline(cin, input, ' ');
+#endif
+
+    int m = stoi(input);
+
+#ifdef INPUT_FILE
+    getline(in, input);
+#else
+    getline(cin, input);
+#endif
+
+    int n = stoi(input);
+
+    vector<string> pic;
+
+    pic.resize(m);
+
+    for (int i = 0; i < m; i++)
+    {
+#ifdef INPUT_FILE
+        getline(in, input);
+#else
+        getline(cin, input);
+#endif
+        pic[i] = input;
+    }
+
+    vector<vector<char>> map;
+    map.resize(m);
+    for (int i = 0; i < m; i++)
+    {
+        map[i].resize(n, '.');
+        //map[i].resize(n, 0);
+        for (int j = 0; j < n; j++)
+        {
+            if (pic[i][j] == '#')
+            {
+                map[i][j] = '#';
+            }
+        }
+    }
+
+    if (m < 6 || n < 6)
+    {
+        cout << "1" << endl;
+        return 0;
+    }
+
+    vector<vector<Point>> points;
+    points.resize(m);
+
+
+    // левые и правые соседи
+    for (int i = 0; i < m; i++)
+    {
+        points[i].resize(n);
+
+        int max = 0;
+        int sum = 0;
+        int index = 0;
+
+        for (int j = 0; j < n; j++)
+        {
+            if (map[i][j] == '#')
+            {
+                if (sum == 0) index = j;
+                sum++;
+            }
+            else
+            {
+                sum--;
+                // в обратную сторону с предыдущего j запишем сумму в ячейки
+                if (sum > 0)
+                {
+                    int tmp_sum = sum;
+                    for (int k = j - 1; k >= index; k--)
+                        points[i][k].l = sum--;
+                    for (int k = index; k <= j - 1; k++)
+                        points[i][k].r = tmp_sum--;
+                }
+                sum = 0;
+            }
+        }
+
+        sum--;
+        if (sum > 0)
+        {
+            int tmp_sum = sum;
+            for (int k = n - 1; k >= index; k--)
+                points[i][k].l = sum--;
+            for (int k = index; k <= n - 1; k++)
+                points[i][k].r = tmp_sum--;
+        }
+    }
+
+    for (int j = 0; j < n; j++)
+    {
+        int max = 0;
+        int sum = 0;
+        int index = 0;
+
+        for (int i = 0; i < m; i++)
+        {
+            if (map[i][j] == '#')
+            {
+                if (sum == 0) index = i;
+                sum++;
+            }
+            else
+            {
+                sum--;
+                // в обратную сторону с предыдущего j запишем сумму в ячейки
+                if (sum > 0)
+                {
+                    int tmp_sum = sum;
+                    for (int k = i - 1; k >= index; k--)
+                        points[k][j].u = sum--;
+                    for (int k = index; k <= i - 1; k++)
+                        points[k][j].d = tmp_sum--;
+                }
+                sum = 0;
+            }
+        }
+
+        sum--;
+        if (sum > 0)
+        {
+            int tmp_sum = sum;
+            for (int k = m - 1; k >= index; k--)
+                points[k][j].u = sum--;
+            for (int k = index; k <= m - 1; k++)
+                points[k][j].d = tmp_sum--;
+        }
+    }
+
+    cout << bin_search_variant6(m, n, map, points) << endl;
+
+    return 0;
+}

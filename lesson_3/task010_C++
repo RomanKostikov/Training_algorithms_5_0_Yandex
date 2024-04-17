@@ -1,0 +1,243 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <algorithm>
+#include <time.h>
+
+using namespace std;
+
+struct Cmp
+{
+    bool operator ()(const pair<int, int>& a, const pair<int, int>& b) const
+    {
+        if (a.second == b.second)
+        {
+            return a.first < b.first;
+        }
+        else return a.second < b.second;
+    }
+};
+
+struct My_data
+{
+    int dev = 0;
+    int cost = 0;
+    int load = 0;
+};
+
+
+struct Cmp2
+{
+    bool operator ()(const My_data& a, const My_data& b) const
+    {
+        if (a.cost == b.cost)
+        {
+            if (a.load == b.load)
+            {
+                return a.dev < b.dev;
+            }
+            else return a.load < b.load;
+        }
+        else return a.cost > b.cost;
+    }
+};
+
+int main()
+{
+    string input;
+
+    getline(cin, input, ' ');
+    int N = stoi(input);
+
+    getline(cin, input);
+    int K = stoi(input);
+
+    map<int, set<int>> part_in_device; // какие части в устройстве
+    map<int, set<int>> device_in_part; // сколько устройств имеет каждую часть
+    map<pair<int, int>, int> cost; // ценность пары A к Б
+
+    for (int i = 0; i < N; i++)
+        part_in_device[i];
+
+    for (int i = 0; i < K; i++)
+    {
+        part_in_device[0].insert(i);
+        device_in_part[i] = { 0 };
+    }
+
+    //device_in_part[0] = { 0, 1, 3 };
+    //device_in_part[1] = { 0, 3, 4, 1 };
+    //device_in_part[2] = { 0, 2 };
+
+    vector<int> res;
+    res.resize(N);
+    for (auto item : res)
+        item = 0;
+
+    vector<int> otvet;
+    otvet.resize(N);
+    for (auto item : otvet)
+        item = 0;
+
+    vector<int> target_part_for_device;
+    vector<int> defice_for_download_part;
+
+    target_part_for_device.resize(N);
+    defice_for_download_part.resize(N);
+
+    int kk = 0;
+
+    while (true)
+    {
+        kk++; //счетчик итерации
+
+        set<pair<int, int>, Cmp> count_device_have_part; // pair <часть, количество скачанных>
+
+        for (int i = 0; i < N; i++) // занулили цели на всякий случай
+            target_part_for_device[i] = -1;
+
+        // Перед каждым таймслотом для каждой части определяется, на скольких устройствах сети скачана эта часть.
+        for (int i = 0; i < K; i++)
+           count_device_have_part.insert(make_pair(i, (int)device_in_part[i].size()));
+
+        // Каждое устройство выбирает отсутствующую на нем часть обновления, которая встречается в сети реже всего.
+        // Если таких частей несколько, то выбирается отсутствующая на устройстве часть обновления с наименьшим номером.
+        for (int i = 1; i < N; i++) // каждое устройство, кроме нулевого
+        {
+            for (auto item : count_device_have_part) // проходим по всем частям
+            {
+                if (!(part_in_device[i].contains(item.first))) // если такой части еще нет на устройстве
+                {
+                    target_part_for_device[i] = item.first; // запомнили часть, которая нужа устройству
+                    break; //закончили искать чать
+                }
+            } // если ничего не нужно, то цель == -1
+        }
+
+        // После этого устройство делает запрос выбранной части обновления у одного из устройств, на котором такая часть обновления уже скачана.
+        // Если таких устройств несколько — выбирается устройство, на котором скачано наименьшее количество частей обновления.
+        // Если и таких устройств оказалось несколько — выбирается устройство с минимальным номером.
+        for (int i = 1; i < N; i++) // каждое устройство, кроме нулевого ищет у кого забрать эту самую часть
+        {
+            //set<pair<int, int>, Cmp> tmp;
+
+            if (target_part_for_device[i] != -1)
+            {
+                int min = 9999; // ищем минимум частей на устройстве
+                int dev = -1;
+                for (auto item : device_in_part[target_part_for_device[i]])
+                {
+                    if (min > (int)part_in_device[item].size())
+                    {
+                        min = (int)part_in_device[item].size();
+                        dev = item;
+                    }
+                }
+
+                defice_for_download_part[i] = dev;
+            }
+            else
+                defice_for_download_part[i] = -1;
+        }
+
+        // После того, как все запросы отправлены, каждое устройство выбирает, чей запрос удовлетворить.
+
+        set<pair<int, int>> tmp_cost; // запоминаем пары, которым нужно добавить стоимость
+
+        for (int i = 0; i < N; i++) // каждое устройство выбирает, чей запрос удовлетворить
+        {
+            vector<int> tmp; // составить вектор тех устройств, которые делают запрос у текущего устройства
+            for (int j = 1; j < N; j++)
+            {
+                if (defice_for_download_part[j] == i)
+                {
+                    tmp.push_back(j);
+                }
+            }
+
+            // Устройство A удовлетворяет тот запрос, который поступил от наиболее ценного для A устройства.
+            // Ценность устройства B для устройства A определяется как количество частей обновления, ранее полученных устройством A от устройства B.
+
+            // Если на устройство A пришло несколько запросов от одинаково ценных устройств, то удовлетворяется запрос того устройства,
+            // на котором меньше всего скачанных частей обновления.
+            // Если и таких запросов несколько, то среди них выбирается устройство с наименьшим номером.
+
+            set<My_data, Cmp2> mas; // тут будем хранить устройство которому отдаем, сколько у него частей лежит и его ценность
+            // Понять чей запрос удовлетворить
+            for (auto item : tmp)
+            {
+                My_data a;
+                a.dev = item;
+                a.cost = cost[make_pair(i, item)];
+                a.load = (int)part_in_device[item].size();
+                //pair<int, int> tmp_pair(i, item); // пара A и B для нахождения ценности
+
+                mas.insert(a); // массив уже отсортирован по нашим условиям, нужно взять из него первый элемент
+            }
+
+            // удовлетворяем запрос
+            if (mas.begin() != mas.end()) // если нам не было запросов, ничего не делаем
+            {
+                My_data a = *mas.begin();
+
+                // добавляем данные о пересылках
+                part_in_device[a.dev].insert(target_part_for_device[a.dev]);
+                device_in_part[target_part_for_device[a.dev]].insert(a.dev);
+                tmp_cost.insert(make_pair(a.dev, i)); // нужно изменять после всех передач на шаге
+                res[a.dev]++;
+
+                if (res[a.dev] == K) otvet[a.dev] = kk;
+            }
+        }
+
+        for (auto item : tmp_cost)
+            cost[item]++;
+
+        //условие остановки всех передач
+        bool go_break = true;
+        for (int h = 1; h < N; h++)
+            if (res[h] != K)
+            {
+                go_break = false;
+            }
+
+        if (go_break) break;
+    }
+
+    for (int i = 1; i < N; i++)
+        std::cout << otvet[i] << " ";
+    std::cout << endl;
+
+
+
+/*
+
+
+5 3
+6 6 7 7
+
+4 3
+5 6 6
+
+
+4 4
+7 8 8
+
+10 10
+44 45 37 45 46 46 41 47 47
+
+20 20
+159 157 140 124 160 161 154 161 149 152 160 155 132 162 150 162 158 163 163
+
+35 100
+1220 1362 1373 1367 1373 1235 1374 1116 1307 1117 1318 1375 1055 1363 1355 1374 1280 1375 1140 1190 1376 1336 1312 1376 1306 1377 1182 1378 1377 1369 982 1060 1378 1242
+
+100 35
+1134 843 1153 1153 280 1085 1075 1139 1154 1093 1133 1154 1155 1135 1156 893 1157 946 1041 1142 1105 358 1157 1082 931 261 1108 1158 1123 1102 1126 866 1116 249 1028 1131 907 993 1144 1098 688 1076 1137 1088 1158 1056 917 1159 940 869 1160 654 1159 1055 1094 1161 1124 1160 711 1129 1079 1156 1162 1162 1163 1163 1164 1089 1111 1031 397 1164 995 1100 898 819 740 898 1111 1149 1147 1062 1165 1165 1090 939 1140 1155 851 809 1037 1025 1166 1136 1070 1166 1161 1152 959
+
+
+*/
+    return 0;
+}

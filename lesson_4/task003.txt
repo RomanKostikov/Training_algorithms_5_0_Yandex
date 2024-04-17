@@ -1,0 +1,131 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+
+using namespace std;
+
+#define ULL unsigned long long
+
+int bin_search(vector<ULL> &vec, int l, int r, int count, ULL sum)
+{
+    int mid = 0;
+
+    while (l < r)
+    {
+        mid = (l + r) / 2; // считываем срединный индекс отрезка [l,r]
+
+        //ULL a = vec[mid];
+        //ULL b = vec[mid - count];
+        if (mid - count < 0) break;
+
+        if (vec[mid] - vec[mid - count] > sum)
+            r = mid; // проверяем, какую часть нужно отбросить с поиска
+        else
+            l = mid + 1;
+    }
+
+    return --r;
+}
+
+int main()
+{
+    string input;
+    getline(cin, input, ' ');
+    int N = stoi(input);
+
+    getline(cin, input);
+    int M = stoi(input);
+
+    vector<ULL> vec;
+    vec.resize(N + 1);
+
+    //getline(cin, input, ' ');
+    vec[0] = 0;
+
+    for (int i = 1; i < N + 1; i++)
+    {
+        if (i != N)
+        {
+            getline(cin, input, ' ');
+            vec[i] = vec[i - 1] + stoi(input);
+        }
+        else
+        {
+            getline(cin, input);
+            vec[i] = vec[i - 1] + stoi(input);
+        }
+    }
+
+    vector<pair<int, ULL>> zapros;
+    zapros.resize(M);
+
+    for (int i = 0; i < M; i++)
+    {
+        getline(cin, input, ' ');
+        zapros[i].first = stoi(input);
+
+        getline(cin, input);
+        zapros[i].second = stoull(input);
+    }
+
+    for (int i = 0; i < M; i++)
+    {
+        int res = bin_search(vec, zapros[i].first - 1, N + 1, zapros[i].first, zapros[i].second);
+        //int res = bin_search(vec, zapros[1].first - 1, N + 1, zapros[1].first, zapros[1].second);
+
+        if (res - zapros[i].first < 0)
+        {
+            cout << "-1 ";
+            continue;
+        }
+
+        ULL test = vec[res] - vec[res - zapros[i].first];
+        //for (int j = res - zapros[i].first + 1; j < res + 1; j++)
+        //{
+        //    test += vec[j];
+        //}
+
+        if (test == zapros[i].second)
+            cout << res - zapros[i].first + 1 << " ";
+        else
+            cout << "-1 ";
+    }
+    cout << endl;
+
+
+
+/*
+
+10 7
+1 3 5 7 9 10 15 22 25 30
+2 4
+1 3
+10 127
+1 30
+5 25
+6 68
+10 128
+
+10 9
+2 3 5 7 9 10 15 22 25 30
+1 1
+3 1
+5 2
+5 1
+1 5
+2 55
+2 56
+2 47
+3 34
+
+5 2
+1 3 5 7 9
+2 4
+1 3
+
+*/
+
+    return 0;
+}

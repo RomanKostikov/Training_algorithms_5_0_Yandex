@@ -1,0 +1,66 @@
+﻿#include <iostream>
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+
+using namespace std;
+
+
+int main()
+{
+    vector<set<int>> vec;
+    vec.resize(3);
+
+    for (int i = 0; i < 3; i++)
+    {
+        string input;
+        getline(cin, input);
+        int N = stoi(input);
+
+        for (int j = 0; j < N; j++)
+        {
+            if (j != N - 1)
+            {
+                getline(cin, input, ' ');
+                vec[i].insert(stoi(input));
+            }
+            else
+            {
+                getline(cin, input);
+                vec[i].insert(stoi(input));
+            }
+        }
+    }
+
+    vector<set<int>> tmp;
+    tmp.resize(3);
+
+
+    set_intersection(vec[0].begin(), vec[0].end(),
+        vec[1].begin(), vec[1].end(),
+        inserter(tmp[0], tmp[0].begin()));
+
+    set_intersection(vec[0].begin(), vec[0].end(),
+        vec[2].begin(), vec[2].end(),
+        inserter(tmp[1], tmp[1].begin()));
+
+    set_intersection(vec[1].begin(), vec[1].end(),
+        vec[2].begin(), vec[2].end(),
+        inserter(tmp[2], tmp[2].begin()));
+
+    set<int> res;
+
+    res.insert(tmp[0].begin(), tmp[0].end());
+    res.insert(tmp[1].begin(), tmp[1].end());
+    res.insert(tmp[2].begin(), tmp[2].end());
+
+    for (int const& item : res)
+    {
+        cout << item << " ";
+    }
+
+    cout << endl;
+
+    return 0;
+}
